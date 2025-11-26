@@ -38,20 +38,23 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+    // 1. Import Firebase Functions
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
 
-    // --- PASTE YOUR CONFIG HERE ---
+    // 2. Your Specific Configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyDxxxx...",
-      authDomain: "your-project.firebaseapp.com",
-      databaseURL: "https://your-project-default-rtdb.firebaseio.com",
-      projectId: "your-project",
-      storageBucket: "your-project.appspot.com",
-      messagingSenderId: "12345...",
-      appId: "1:12345..."
+      apiKey: "AIzaSyDzex6dSRjkE8PrlLS83teyACVm1-znxXo",
+      authDomain: "weatherstation-857c2.firebaseapp.com",
+      databaseURL: "https://weatherstation-857c2-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "weatherstation-857c2",
+      storageBucket: "weatherstation-857c2.firebasestorage.app",
+      messagingSenderId: "794617552534",
+      appId: "1:794617552534:web:05b4fe5d8453b659b6ecb7",
+      measurementId: "G-SG64WXJPV0"
     };
 
+    // 3. Initialize App & Database
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
@@ -64,32 +67,52 @@
             datasets: [{
                 label: 'Real-time Temperature',
                 borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.4, // Makes lines smooth and curved
+                fill: true,     // Fills color under the line
                 data: [],
             }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: false } // Starts Y-axis based on data values
+            }
         }
     });
 
-    // --- LISTEN FOR DATA ---
+    // --- LISTEN FOR DATA FROM FIREBASE ---
     const tempRef = ref(db, 'sensors/temperature');
     const humRef = ref(db, 'sensors/humidity');
 
+    // Update Temperature & Graph
     onValue(tempRef, (snapshot) => {
       const data = snapshot.val();
-      document.getElementById('tempValue').innerText = data + " °C";
-      
-      // Update Chart
-      const now = new Date().toLocaleTimeString();
-      if(myChart.data.labels.length > 20) { // Keep last 20 points
-          myChart.data.labels.shift();
-          myChart.data.datasets[0].data.shift();
+      if (data !== null) {
+          document.getElementById('tempValue').innerText = data + " °C";
+          
+          // Add data to chart
+          const now = new Date().toLocaleTimeString();
+          
+          // Remove old data if more than 20 points
+          if(myChart.data.labels.length > 20) { 
+              myChart.data.labels.shift();
+              myChart.data.datasets[0].data.shift();
+          }
+          
+          // Add new data
+          myChart.data.labels.push(now);
+          myChart.data.datasets[0].data.push(data);
+          myChart.update();
       }
-      myChart.data.labels.push(now);
-      myChart.data.datasets[0].data.push(data);
-      myChart.update();
     });
 
+    // Update Humidity Text Only
     onValue(humRef, (snapshot) => {
-      document.getElementById('humValue').innerText = snapshot.val() + " %";
+      const data = snapshot.val();
+      if (data !== null) {
+          document.getElementById('humValue').innerText = data + " %";
+      }
     });
   </script>
 </body>
